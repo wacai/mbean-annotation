@@ -8,7 +8,7 @@ import DynamicMBean._
 
 import concurrent.duration.FiniteDuration
 
-trait AtMBean extends Actor {
+trait AsMBean extends Actor {
 
   import collection.JavaConversions._
 
