@@ -2,23 +2,10 @@ package com.wacai.mbean.annotation
 
 import akka.actor.Actor
 
-class ThrottleActor extends Actor with Throttle {
-  var threshold: Int = 100
+/*@mbean */trait Throttle extends Actor {
 
-  var count = 0
+   var threshold: Int
 
-  def receive = {
-    case i: Int => count += i
-  }
+   def isOverload: Boolean
 
-  def isOverload = count > threshold
-}
-
-
-@mbean trait Throttle extends Actor {
-
-  var threshold: Int
-
-  def isOverload: Boolean
-
-}
+ }

@@ -1,10 +1,7 @@
 package com.wacai.mbean.annotation
 
 
-import javax.management.{MBeanOperationInfo, MBeanAttributeInfo}
-
 import akka.actor.Actor
-import com.wacai.mbean.actor.{AsMBean, Ask}
 
 import reflect.macros._
 

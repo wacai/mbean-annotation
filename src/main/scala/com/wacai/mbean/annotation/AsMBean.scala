@@ -1,12 +1,11 @@
-package com.wacai.mbean.actor
+package com.wacai.mbean.annotation
 
 import java.lang.Boolean
-import java.lang.reflect.Field
 import javax.management._
 import management.ManagementFactory
 
-import akka.actor.Actor
 import DynamicMBean._
+import akka.actor.Actor
 
 import concurrent.duration.FiniteDuration
 import util.Try

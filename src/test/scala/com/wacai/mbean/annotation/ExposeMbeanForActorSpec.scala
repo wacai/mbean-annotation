@@ -1,12 +1,13 @@
 package com.wacai.mbean.annotation
 
-import javax.management.Attribute
-import management.ManagementFactory.{getPlatformMBeanServer => mServer}
+import java.lang.management.ManagementFactory.{getPlatformMBeanServer => mServer}
+import javax.management._
 
 import akka.actor.{ActorSystem, Props}
 import org.scalatest._
 
 class ExposeMbeanForActorSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
+
 
   import ActorTestEnv._
 
