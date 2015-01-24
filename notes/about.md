@@ -1,0 +1,1 @@
+[mbean-annotation](https://github.com/wacai/mbean-annotation) provides an easy-to-use method of exposing Mbean by scala macro annotation.
