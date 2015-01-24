@@ -1,5 +1,7 @@
 package com.wacai.mbean.actor
 
+import java.lang.Boolean
+import java.lang.reflect.Field
 import javax.management._
 import management.ManagementFactory
 
@@ -46,12 +48,24 @@ trait AsMBean extends Actor {
 
   val _objectName: ObjectName
   val _timeout   : FiniteDuration
-  val _attributes: Array[MBeanAttributeInfo]
-  val _operations: Array[MBeanOperationInfo]
+  val _attributes: Array[String]
+  val _operations: Array[(String, Array[Class[_]])]
 
   private def server = ManagementFactory.getPlatformMBeanServer
 
-  private def info: MBeanInfo = new MBeanInfo(getClass.getName, "", _attributes, null, _operations, null)
+  private def info: MBeanInfo = {
+    val attributeInfos = _attributes map { name =>
+      val f = getClass.getField(name)
+      val b = f.getType == classOf[Boolean] || f.getType == classOf[java.lang.Boolean]
+      new MBeanAttributeInfo(f.getName, f.getType.getName, "", true, true, b)
+    }
+
+    val operationInfos = _operations map {
+      case (name, classes) => new MBeanOperationInfo("", getClass.getMethod(name, classes: _*))
+    }
+
+    new MBeanInfo(getClass.getName, "", attributeInfos, null, operationInfos, null)
+  }
 
   private def get(name: String): AnyRef = getClass.getMethod(s"$name").invoke(this)
 
