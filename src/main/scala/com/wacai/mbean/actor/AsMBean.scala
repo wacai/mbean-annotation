@@ -7,6 +7,7 @@ import akka.actor.Actor
 import DynamicMBean._
 
 import concurrent.duration.FiniteDuration
+import util.Try
 
 trait AsMBean extends Actor {
 
@@ -14,22 +15,19 @@ trait AsMBean extends Actor {
 
   override def unhandled(message: Any) = message match {
     case SetAttributes(attrs) =>
-      attrs.asList() foreach { a => set(a.getName, a.getValue)}
-      sender() ! attrs
+      sender() ! Try(attrs.asList() foreach { a => set(a.getName, a.getValue)}).map { _ => attrs}
 
     case SetAttribute(attr) =>
-      set(attr.getName, attr.getValue)
-      sender() !()
+      sender() ! Try(set(attr.getName, attr.getValue))
 
     case GetAttributes(names) =>
-      val attrs = names map { name => new Attribute(name, get(name))}
-      sender() ! new AttributeList(attrs.toList)
+      sender() ! Try(names map { n => new Attribute(n, get(n))}).map { as => new AttributeList(as.toList)}
 
     case GetAttribute(name) =>
-      sender() ! get(name)
+      sender() ! Try(get(name))
 
     case Invoke(name, params, signature) =>
-      sender() ! invoke(name, params, signature)
+      sender() ! Try(invoke(name, params, signature))
 
     case _ => super.unhandled(message)
   }
@@ -47,16 +45,22 @@ trait AsMBean extends Actor {
   }
 
   val _objectName: ObjectName
+  val _timeout   : FiniteDuration
+  val _attributes: Array[MBeanAttributeInfo]
+  val _operations: Array[MBeanOperationInfo]
 
-  val _timeout: FiniteDuration
+  private def server = ManagementFactory.getPlatformMBeanServer
 
-  def server = ManagementFactory.getPlatformMBeanServer
+  private def info: MBeanInfo = new MBeanInfo(getClass.getName, "", _attributes, null, _operations, null)
 
-  def info: MBeanInfo
+  private def get(name: String): AnyRef = getClass.getMethod(s"$name").invoke(this)
 
-  def get(name: String): AnyRef
+  private def set(name: String, value: AnyRef): AnyRef = {
+    getClass.getMethod(s"${name}_=", value.getClass).invoke(this, value)
+    value
+  }
 
-  def set(name: String, value: AnyRef): AnyRef
-
-  def invoke(name: String, params: Array[AnyRef], signature: Array[String]): Any
+  private def invoke(name: String, params: Array[AnyRef], signature: Array[String]) = {
+    getClass.getMethod(name, params.map(_.getClass): _*).invoke(this, params)
+  }
 }
