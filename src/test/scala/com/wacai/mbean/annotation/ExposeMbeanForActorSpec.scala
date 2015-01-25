@@ -12,8 +12,9 @@ class ExposeMbeanForActorSpec extends FlatSpec with Matchers with BeforeAndAfter
   import ActorTestEnv._
 
   "@mbean" should "expose mbean for an actor" in {
-    val oname = Named[Throttle](ref.path.name)
+    val oname = Named[ThrottleActor](ref.path.name)
     ref ! 100
+    Thread.sleep(100L) // wait for registion
     mServer.invoke(oname, "isOverload", Array.empty[AnyRef], Array.empty[String]) shouldBe false
     mServer.setAttribute(oname, new Attribute("threshold", 99))
     mServer.invoke(oname, "isOverload", Array.empty[AnyRef], Array.empty[String]) shouldBe true

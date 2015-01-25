@@ -1,4 +1,4 @@
-package com.wacai.mbean.annotation
+package com.wacai.mbean.actor
 
 import concurrent.duration._
 
