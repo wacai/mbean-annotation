@@ -3,7 +3,7 @@ package com.wacai.mbean.annotation
 import akka.actor.Actor
 
 class ThrottleActor extends Actor with Throttle {
-  var threshold: Int = 100
+  override var threshold: Int = 100
 
   var count = 0
 
@@ -11,7 +11,13 @@ class ThrottleActor extends Actor with Throttle {
     case i: Int => count += i
   }
 
-  def isOverload = count > threshold
+  override def isOverload = count > threshold
+
+  @throws[Exception](classOf[Exception])
+  override def preStart() = super.preStart()
+
+  @throws[Exception](classOf[Exception])
+  override def postStop() = super.postStop()
 }
 
 

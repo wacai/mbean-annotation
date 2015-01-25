@@ -1,13 +1,10 @@
 package com.wacai.mbean.annotation
 
-import java.lang.Boolean
 import javax.management._
-import management.ManagementFactory
 
 import DynamicMBean._
 import akka.actor.Actor
 
-import concurrent.duration.FiniteDuration
 import util.Try
 
 trait AsMBean extends Actor {
@@ -33,38 +30,6 @@ trait AsMBean extends Actor {
     case _ => super.unhandled(message)
   }
 
-  @throws[Exception](classOf[Exception])
-  override def preStart() = {
-    server.registerMBean(DynamicMBean(self, _timeout, info), _objectName)
-    super.preStart()
-  }
-
-  @throws[Exception](classOf[Exception])
-  override def postStop() = {
-    server.unregisterMBean(_objectName)
-    super.postStop()
-  }
-
-  val _objectName: ObjectName
-  val _timeout   : FiniteDuration
-  val _attributes: Array[String]
-  val _operations: Array[(String, Array[Class[_]])]
-
-  private def server = ManagementFactory.getPlatformMBeanServer
-
-  private def info: MBeanInfo = {
-    val attributeInfos = _attributes map { name =>
-      val f = getClass.getField(name)
-      val b = f.getType == classOf[Boolean] || f.getType == classOf[java.lang.Boolean]
-      new MBeanAttributeInfo(f.getName, f.getType.getName, "", true, true, b)
-    }
-
-    val operationInfos = _operations map {
-      case (name, classes) => new MBeanOperationInfo("", getClass.getMethod(name, classes: _*))
-    }
-
-    new MBeanInfo(getClass.getName, "", attributeInfos, null, operationInfos, null)
-  }
 
   private def get(name: String): AnyRef = getClass.getMethod(s"$name").invoke(this)
 
