@@ -7,4 +7,26 @@ It provides an easy-to-use method of exposing MBean by scala [macro annotation][
 
 [mcr]:http://docs.scala-lang.org/overviews/macros/annotations.html
 
+## Usage
+
+```
+import com.wacai.mbean.annotation._
+
+
+@mbean class ThrottleActor extends Actor {
+  def receive = {
+    case i: Int => count += i
+  }
+
+  var count = 0
+
+  @attribute var threshold = 100
+
+  @operation def isOverload = count > threshold
+}
+
+```
+
+## Installation
+
 Comming soon.
