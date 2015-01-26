@@ -46,8 +46,6 @@ class Macro(val c: whitebox.Context) {
         c.abort(c.enclosingPosition, "Annotation is only supported on class with Actor")
     }
 
-    println(result)
-
     c.Expr[Any](result)
   }
 
