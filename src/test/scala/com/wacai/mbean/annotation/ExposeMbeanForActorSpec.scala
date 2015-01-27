@@ -6,6 +6,8 @@ import javax.management._
 import akka.actor.{ActorSystem, Props}
 import org.scalatest._
 
+import annotation.tailrec
+
 class ExposeMbeanForActorSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 
 
@@ -13,14 +15,28 @@ class ExposeMbeanForActorSpec extends FlatSpec with Matchers with BeforeAndAfter
 
   "@mbean" should "expose mbean for an actor" in {
     val oname = Named[ThrottleActor](ref.path.name)
+
     ref ! 100
-    Thread.sleep(100L) // wait for registion
+
+    waitForRegistry(oname)
+
     mServer.invoke(oname, "isOverload", Array.empty[AnyRef], Array.empty[String]) shouldBe false
     mServer.setAttribute(oname, new Attribute("threshold", 99))
     mServer.invoke(oname, "isOverload", Array.empty[AnyRef], Array.empty[String]) shouldBe true
   }
 
-  lazy val ref = system.actorOf(Props[ThrottleActor])
+  @tailrec
+  private def waitForRegistry(oname: ObjectName) {
+    try {
+      Thread.sleep(100L)
+      mServer.getObjectInstance(oname)
+    } catch {
+      case _: InstanceNotFoundException => waitForRegistry(oname)
+      case t: Throwable                 => throw t
+    }
+  }
+
+  val ref = system.actorOf(Props[ThrottleActor])
 
   override protected def afterAll() = {
     super.afterAll()
