@@ -93,9 +93,9 @@ trait AsMBean extends Actor {
     case _ => super.unhandled(message)
   }
 
-  def _attributes: Array[String]
+  val _attributes: Array[String]
 
-  def _operations: Array[(String, Array[Class[_]])]
+  val _operations: Array[(String, Array[Class[_]])]
 
   private def info: MBeanInfo = {
     val attributeInfos = _attributes map { name =>

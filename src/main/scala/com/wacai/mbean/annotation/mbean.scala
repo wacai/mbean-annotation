@@ -16,8 +16,9 @@ class Macro(val c: whitebox.Context) {
   import Flag._
 
   def impl(annottees: c.Expr[Any]*): c.Expr[Any] = {
-    val result = annottees.map(_.tree).toList match {
-      case (ClassDef(mods, name, a, Template(parents @ WithActor(), s, body))) :: Nil =>
+
+    val newClassDef: ClassDef => ClassDef = {
+      case (ClassDef(mods, name, tp, Template(parents @ WithActor(), s, body))) =>
 
         val attributesDef = {
           val list = body collect { case ValDef(IsAttribute(), n, _, _) => q"${n.toString}"}
@@ -30,7 +31,7 @@ class Macro(val c: whitebox.Context) {
               val clss = vparamss.flatten collect { case ValDef(_, _, tpt, _) => q"classOf[$tpt]"}
               if (clss.isEmpty) q"(${n.toString}, Array.empty[Class[_]])" else q"($n, Array(...$clss))"
           }
-          q"val _operations = Array(..$list)"
+          q"val _operations: Array[(String, Array[Class[_]])] = Array(..$list)"
         }
 
         val nparents = {
@@ -40,7 +41,16 @@ class Macro(val c: whitebox.Context) {
 
         val nbody = attributesDef :: operationsDef :: body
 
-        ClassDef(mods, name, a, Template(nparents, s, nbody))
+        ClassDef(mods, name, tp, Template(nparents, s, nbody))
+
+    }
+
+    val result = annottees.map(_.tree).toList match {
+      case (c: ClassDef) :: Nil =>
+        newClassDef(c)
+
+      case (c: ClassDef) :: o :: Nil =>
+        q"..${newClassDef(c) :: o :: Nil}"
 
       case _ =>
         c.abort(c.enclosingPosition, "Annotation is only supported on class with Actor")
